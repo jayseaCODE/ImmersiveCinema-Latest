@@ -1,14 +1,24 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+//AppendStructuredBuffer<half> depthimageRaw;
+AppendStructuredBuffer<float3> xyzpositions_buffer;
+//half = 2*bytes
+
+float height;
+float width;
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
-
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+ 
+    //Normalize pos
+    float3 pos = id / (width-1);
+ 
+    pos = (pos - 0.5) * 2.0 * height;
+    //multiply z coordinate with -1, to put the points in front of the Oculus camera
+    pos.z = 30.0 * -1;
+ 
+    //if(id.x % 2 == 0 && id.y % 2 == 0)
+        xyzpositions_buffer.Append(  pos );
 }

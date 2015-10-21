@@ -20,7 +20,7 @@ public class PDepth : MonoBehaviour {
 //	public float MaxSceneDepth, MaxWorldDepth; // Maximum Z-amount for particle positions, and Maximum distance from camera to SEARCH for depth points
 //	private int startXindex=0,endXindex=320,startYindex=0,endYIndex=240;
 //	private int startXindex=0,endXindex=290,startYindex=46,endYIndex=208;// Index of pixels that have positive UV values in the UV image map, Saves computations on grabbing pixels with negative UV values
-	private int startXindex=40,endXindex=280,startYindex=35,endYIndex=220; //Index of pixels (tested with the rendering of surroundings)
+	private int startXindex=40,endXindex=280,startYindex=35,endYindex=220; //Index of pixels (tested with the rendering of surroundings)
 	public float NormRatioGridX=1.0f, NormRatioGridY=1.0f; //The normalized (range 0 to 1) distances of the normal particle system grid
 	public float NormRatioBackgroundX=1.3f, NormRatioBackgroundY=1.0f; //The length ratios to render the background colors(A rough hack to match with particle system)
 	public float backgroundXoffset, backgroundYoffset, gridXoffset, gridYoffset;
@@ -88,12 +88,12 @@ public class PDepth : MonoBehaviour {
 		colorimageWidth = (int)colorimage.ImageInfos.Width; //1280
 		colorimageHeight = (int)colorimage.ImageInfos.Height; //720
 
-		points = new ParticleSystem.Particle[(endXindex-startXindex)*(endYIndex-startYindex)];//new ParticleSystem.Particle[Xgrid*Ygrid];
+		points = new ParticleSystem.Particle[(endXindex-startXindex)*(endYindex-startYindex)];//new ParticleSystem.Particle[Xgrid*Ygrid];
 		Xstep = depthX/Xgrid;
 		Ystep = depthY/Ygrid;
 
 		int pid=0;
-		for(int y=0;y<(endYIndex-startYindex);y+=Ystep)//for(int y=0;y<depthY;y+=Ystep)
+		for(int y=0;y<(endYindex-startYindex);y+=Ystep)//for(int y=0;y<depthY;y+=Ystep)
 		{
 			for(int x=0;x<(endXindex-startXindex);x+=Xstep)//for(int x=0;x<depthX;x+=Xstep)
 			{
@@ -185,7 +185,7 @@ public class PDepth : MonoBehaviour {
 		int pid=0, colorIndex=0, toIndex=0;
 		float u_value, v_value;
 		//Profiler.BeginSample("ForLoop");
-		for(int dy=startYindex;dy<endYIndex;dy+=Ystep)
+		for(int dy=startYindex;dy<endYindex;dy+=Ystep)
 		{
 			// Speed up multiplication calculations for indexEquivalent()
 			N1.SetValue(dy, N3); // Update only 2nd row of N1 with the right dy values
