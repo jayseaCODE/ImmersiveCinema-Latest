@@ -34,13 +34,13 @@ public class FPSDisplay : MonoBehaviour {
 			string format = System.String.Format("{0:F2} FPS",fps);
 			GetComponent<UnityEngine.UI.Text>().text = format;
 			
-			if(fps < 30)
-				GetComponent<UnityEngine.UI.Text>().material.color = Color.yellow;
-			else 
-				if(fps < 10)
-					GetComponent<UnityEngine.UI.Text>().material.color = Color.red;
-			else
-				GetComponent<UnityEngine.UI.Text>().material.color = Color.green;
+//			if(fps < 30)
+//				GetComponent<UnityEngine.UI.Text>().material.color = Color.yellow;
+//			else 
+//				if(fps < 10)
+//					GetComponent<UnityEngine.UI.Text>().material.color = Color.red;
+//			else
+//				GetComponent<UnityEngine.UI.Text>().material.color = Color.green;
 			//	DebugConsole.Log(format,level);
 			timeleft = updateInterval;
 			accum = 0.0F;

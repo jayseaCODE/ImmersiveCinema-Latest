@@ -1,8 +1,9 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-//AppendStructuredBuffer<half> depthimageRaw;
+//StructuredBuffer<uint> depthimageRaw;
 AppendStructuredBuffer<float3> xyzpositions_buffer;
+//Texture2D<half> depthimageTex;
 //half = 2*bytes
 
 float height;
@@ -11,14 +12,16 @@ float width;
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
- 
-    //Normalize pos
-    float3 pos = id / (width-1);
- 
-    pos = (pos - 0.5) * 2.0 * height;
+ 	float3 pos = id;
+    int dx = pos.x;
+    int dy = pos.y;
+    int didx = dy*width+dx;
     //multiply z coordinate with -1, to put the points in front of the Oculus camera
-    pos.z = 30.0 * -1;
+    pos.z = 200.0 * -1;
+    //pos.x = pos.x - 250.0;
+    //pos.y = pos.y - 200.0;
+    //pos.z = -1 * (float)(depthimageRaw[didx*2]+(depthimageRaw[didx * 2 + 1] << 8));
+    //pos.z = -1 * depthimageTex.Load(id.xyz);
  
-    //if(id.x % 2 == 0 && id.y % 2 == 0)
-        xyzpositions_buffer.Append(  pos );
+    xyzpositions_buffer.Append(  pos );
 }

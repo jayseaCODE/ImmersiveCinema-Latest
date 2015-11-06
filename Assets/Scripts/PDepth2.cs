@@ -84,12 +84,14 @@ public class PDepth2 : MonoBehaviour {
 //	ComputeBuffer ps_buffer;
 //	int ps_count;
 //	float[] ps_points;
-	ComputeBuffer depthimageRawBuffer;
+	//ComputeBuffer depthimageRawBuffer;
 //	ComputeBuffer colorimageRawBuffer;
 //	ComputeBuffer colorUndistortedimageRawBuffer;
 //	ComputeBuffer UVimageRawBuffer;
 	ComputeBuffer ps_xyzpositions_buffer;
 	ComputeBuffer argBuffer;
+	int[] args = new int[]{ 0, 1, 0, 0 };
+	//Texture2D depthimageTex;
 	
 	// Populate the particle grid
 	void Start () {
@@ -160,84 +162,47 @@ public class PDepth2 : MonoBehaviour {
 //		ps_buffer = new ComputeBuffer(ps_count, sizeof(float)*3, ComputeBufferType.Default);
 //		ps_points = new float[ps_count*3];
 
-		depthimageRawBuffer = new ComputeBuffer((int)depthimage.ImageInfos.BytesRaw, sizeof(byte)*2, ComputeBufferType.Append);
-		ps_xyzpositions_buffer = new ComputeBuffer(32*32, sizeof(float)*3, ComputeBufferType.Append);
-		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
-		ps_computeShader.SetFloat("height",5.0f);//(endYindex-startYindex));
-		ps_computeShader.SetFloat("width",32.0f);//(endXindex-startXindex));
-		
-		ps_computeShader.Dispatch(0, 32/8, 32/8, 1);
-		
+//		depthimageRawBuffer = new ComputeBuffer((int)depthimage.ImageInfos.BytesRaw/2, sizeof(UInt16), ComputeBufferType.Default);
+//		ps_xyzpositions_buffer = new ComputeBuffer(320*240, sizeof(float)*3);
+		ps_xyzpositions_buffer = new ComputeBuffer(320*240, sizeof(float)*3, ComputeBufferType.Append);
 		argBuffer = new ComputeBuffer(4, sizeof(int), ComputeBufferType.DrawIndirect);
-		int[] args = new int[]{ 0, 1, 0, 0 };
+
+		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
+		ps_computeShader.SetFloat("height",240);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
+		ps_computeShader.SetFloat("width",320);//(endXindex-startXindex));
+		
+		ps_computeShader.Dispatch(0, 320/32, 240/32, 1);
 		argBuffer.SetData(args);
-		
 		ComputeBuffer.CopyCount(ps_xyzpositions_buffer, argBuffer, 0);
-		argBuffer.GetData(args);
-		
-		Debug.Log("vertex count " + args[0]);
-		Debug.Log("instance count " + args[1]);
-		Debug.Log("start vertex " + args[2]);
-		Debug.Log("start instance " + args[3]);
-
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		// Initialization
-		if (depthimage == null )
-			return;
-		if (depthimage.Raw == IntPtr.Zero )
-			return;
-		if (depthimageRaw == null || depthimageRaw.Length != depthimage.ImageInfos.BytesRaw)
-			depthimageRaw = new byte[depthimage.ImageInfos.BytesRaw];
-			//depthimageRawBuffer = ComputeBuffer((int)depthimage.ImageInfos.BytesRaw, sizeof(byte)*2, ComputeBufferType.Append); //depthimageRaw = new byte[depthimage.ImageInfos.BytesRaw];
-			//colorimageRawBuffer = new ComputeBuffer((int)colorimage.ImageInfos.BytesRaw, sizeof(byte)*4, ComputeBufferType.Append); //colorimageRaw = new byte[colorimage.ImageInfos.BytesRaw];
-			//ps_computeShader.SetBuffer(0, "colorimageRaw", colorimageRawBuffer);
-			//colorUndistortedimageRawBuffer = new ComputeBuffer((int)colorimage.ImageInfos.BytesRaw, 480*640*1*4, ComputeBufferType.Append); //colorUndistortedimageRaw = new byte[480*640*1*4];
-			//ps_computeShader.SetBuffer(0, "colorUndistortedimageRaw", colorUndistortedimageRawBuffer);
-		//if (UVimageRawBuffer == null || UVimageRawBuffer.count != uvimagemap.ImageInfos.BytesRaw) //if (UVimageRaw == null || UVimageRaw.Length != uvimagemap.ImageInfos.BytesRaw)
-			//UVimageRawBuffer = new ComputeBuffer((int)uvimagemap.ImageInfos.BytesRaw, sizeof(float)*2, ComputeBufferType.Append); //UVimageRaw = new byte[uvimagemap.ImageInfos.BytesRaw];
-			//ps_computeShader.SetBuffer(0, "UVimageRaw", UVimageRawBuffer);
 
-		uint byte_size = (uint)depthimage.ImageInfos.BytesRaw;
-		Emgu.CV.CvInvoke.Undistort(cvdepthSource, cvdepthUndistorted, depthIntrinsicsMat, depthDistortCoeff, null);
-		Marshal.Copy(cvdepthUndistorted.DataPointer, depthimageRaw, 0, (int)byte_size);
-		depthimageRawBuffer.SetData(depthimageRaw);
-		ps_computeShader.SetBuffer(0, "depthimageRaw", depthimageRawBuffer);
-
-		//ps_xyzpositions_buffer = new ComputeBuffer((endYindex-startYindex)*(endXindex-startXindex), sizeof(float)*3, ComputeBufferType.Append);
-
-
-//		UnityEngine.Random.seed = 0;
-//		UnityEngine.Vector3 position;//, screenPos;
-//		for(int i = 0; i < ps_count; i++)
-//		{
-//			position = new UnityEngine.Vector3(UnityEngine.Random.Range(5f,10f), UnityEngine.Random.Range(5f,10f), -1*UnityEngine.Random.Range(5f,10f));
-//			//screenPos = OculusCamera.cameraToWorldMatrix.MultiplyPoint3x4(position);
-//			ps_points[i*3+0] = position.x;//screenPos.x;
-//			ps_points[i*3+1] = position.y;//screenPos.y;
-//			ps_points[i*3+2] = position.z;//screenPos.z;
-//		}
+	void Update() {
+		//must reset particles verts to 0 each frame.
+		ps_xyzpositions_buffer.SetData(new float[320*240*3]);
+//
+//		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
+//		ps_computeShader.SetFloat("height",120);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
+//		ps_computeShader.SetFloat("width",160);//(endXindex-startXindex));
 //		
-//		ps_buffer.SetData(ps_points);
+//		ps_computeShader.Dispatch(0, 40/8, 40/8, 1);
+		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
+		ps_computeShader.SetFloat("height",240);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
+		ps_computeShader.SetFloat("width",320);//(endXindex-startXindex));
+		
+		ps_computeShader.Dispatch(0, 640/32, 480/32, 1);
+		argBuffer.SetData(args);
+		ComputeBuffer.CopyCount(ps_xyzpositions_buffer, argBuffer, 0);
 	}
 
 	void OnRenderObject() {
 		ps_material.SetPass(0);
-		//ps_material.SetBuffer("buffer", ps_buffer);
 		ps_material.SetBuffer("buffer", ps_xyzpositions_buffer);
 		ps_material.SetMatrix("cameraToWorldMatrix", OculusCamera.cameraToWorldMatrix);
-		//Graphics.DrawProcedural(MeshTopology.Points, ps_count, 1);
+//		Graphics.DrawProcedural(MeshTopology.Points, 320*240);
 		Graphics.DrawProceduralIndirect(MeshTopology.Points, argBuffer, 0);
 	}
 
 	void OnDestroy() {
-		//ps_buffer.Release();
-		depthimageRawBuffer.Release();
-//		colorimageRawBuffer.Release();
-//		colorUndistortedimageRawBuffer.Release();
-//		UVimageRawBuffer.Release();
 		ps_xyzpositions_buffer.Release();
 		argBuffer.Release();
 	}

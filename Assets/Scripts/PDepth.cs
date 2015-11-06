@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
 using System.Collections;
 using Iisu.Data;
 using System.IO;
 using Emgu.CV;
+using UnityEngine.UI; //For Canvas, Text, GUI
 
 /// <summary>
 /// Helper class to convert iisu (color and depth) images to Unity point cloud through iisu UV-mapping
@@ -40,10 +41,19 @@ public class PDepth : MonoBehaviour {
 	private float fadeOutWaitingTimer = 1f; // Timer used to smoothen the fading out of real world
 	private float fadeInWaitingTimer = 1f; // Timer used to smoothen the fading into real world
 	public float quaternion_y=0f, Prev_quaternion_y=0f;
-	public float timeToShakeHead = 1f;
+	public float timeToShakeHead = 1f; //should be 0.15f
 	public float changesInY = 0f, signChangesInY = 0f;
 	public float currentSign = 1.0f; //Start out with positive
-	public float speed=0f;
+	private bool UserHeadMovement_bool = false;
+	private float UserHeadMovement_sensitivity = 0.04f;
+	public GameObject GUI;
+	public Text DepthDistText;
+	public Text HeadShakingText;
+	public Text HeadShakingSensitText;
+	private bool GUI_bool = false;
+	public GameObject FPSDisplay;
+	private bool framerate_bool = false;
+	//public float speed=0f;
 	/*
 	 * Note that the particle system size grid is fixed, but we can change its particle spacing which tentatively reduces
 	 * the number of particles in the whole particle system. We could change the whole size of the particle system grid in
@@ -178,8 +188,32 @@ public class PDepth : MonoBehaviour {
 		//Profiler.EndSample();
 
 		//Profiler.BeginSample("Head-checks");
-		// Check for head movement
-		UserHeadMovement();
+
+		if (Input.GetButtonDown("Fire1")) {
+			UserHeadMovement_bool = !UserHeadMovement_bool;
+		}
+		if (UserHeadMovement_bool) {
+			// Check for head movement
+			UserHeadMovement();
+		}
+		UserHeadMovement_sensitivity = UserHeadMovement_sensitivity + (Input.GetAxisRaw("Horizontal")*0.001f);
+		particleDepthDist = particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
+		if (Input.GetButtonDown("Jump")) GUI_bool = !GUI_bool;
+		if (GUI_bool) {
+			// Display GUI
+			DepthDistText.text = "Depth Dist " + particleDepthDist;
+			if (UserHeadMovement_bool) HeadShakingText.text = "Head Shaking ON";
+			else HeadShakingText.text = "Head Shaking OFF";
+			HeadShakingSensitText.text = "Head Sensitivity " + UserHeadMovement_sensitivity.ToString("F2");
+			GUI.SetActive(true);
+		}
+		else {
+			// Hide GUI
+			GUI.SetActive(false);
+		}
+		if (Input.GetButtonDown ("f")) framerate_bool = !framerate_bool;
+		if (framerate_bool) FPSDisplay.SetActive(true);
+		else FPSDisplay.SetActive(false);
 		//Profiler.EndSample();
 
 		int pid=0, colorIndex=0, toIndex=0;
@@ -293,7 +327,7 @@ public class PDepth : MonoBehaviour {
 		}
 		else {
 			quaternion_y = OculusTransform.rotation.y;
-			if ( (quaternion_y - Prev_quaternion_y) > 0.04 ) {  //0.05
+			if ( (quaternion_y - Prev_quaternion_y) > UserHeadMovement_sensitivity ) {  //0.05
 				if (currentSign < 0) {
 					signChangesInY += 1; // Add one to number of sign changes
 					currentSign *= -1; // Switch the sign from negative to positive
