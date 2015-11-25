@@ -155,11 +155,10 @@ public class PDepth : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		//Profiler.BeginSample("Initialization");
 		// Initialization
-		if (depthimage == null )
+		if (depthimage == null)
 			return;
-		if (depthimage.Raw == IntPtr.Zero )
+		if (depthimage.Raw == IntPtr.Zero)
 			return;
 		if (depthimageRaw == null || depthimageRaw.Length != depthimage.ImageInfos.BytesRaw)
 			depthimageRaw = new byte[depthimage.ImageInfos.BytesRaw];
@@ -171,24 +170,18 @@ public class PDepth : MonoBehaviour {
 		//Debug.Log("color byte size "+color_byte_size);
 		uint UV_byte_size = (uint)uvimagemap.ImageInfos.BytesRaw;
 		uint color_byte_size = (uint)colorimage.ImageInfos.BytesRaw;
-		//Profiler.BeginSample("Initialization-Emgucv");
 		// Resize color image from 1280x720 to 640x480, distort this color image and also the 320x240 depth image
 		Emgu.CV.CvInvoke.Resize (cvcolorSource, cvcolorSource2, cvcolorSource2.Size, 0.5, 0.66666666666, Emgu.CV.CvEnum.Inter.Linear);
 		Emgu.CV.CvInvoke.Undistort(cvdepthSource, cvdepthUndistorted, depthIntrinsicsMat, depthDistortCoeff, null);
 		Emgu.CV.CvInvoke.Undistort(cvcolorSource2, cvcolorUndistorted, colorIntrinsicsMat, colorDistortCoeff, null);
-		//Profiler.EndSample();
-		//Profiler.BeginSample("Initialization-MemoryCopy");
 		// Copy image content into managed arrays
 		Marshal.Copy(cvdepthUndistorted.DataPointer, depthimageRaw, 0, (int)byte_size);
 		Marshal.Copy(cvcolorUndistorted.DataPointer, colorUndistortedimageRaw, 0, (int)480*640*1*4);
 //		Marshal.Copy(depthimage.Raw, depthimageRaw, 0, (int)byte_size);
 		Marshal.Copy(colorimage.Raw, colorimageRaw, 0, (int)color_byte_size);
 		Marshal.Copy(uvimagemap.Raw, UVimageRaw, 0, (int)UV_byte_size);
-		//Profiler.EndSample();
-		//Profiler.EndSample();
 
 		//Profiler.BeginSample("Head-checks");
-
 		if (Input.GetButtonDown("Fire1")) {
 			UserHeadMovement_bool = !UserHeadMovement_bool;
 		}
@@ -276,7 +269,7 @@ public class PDepth : MonoBehaviour {
 
 					// Get the correct index of a pixel in the color image byte array by its UV coordinates
 					colorIndex = (int)((u_value+UVmap_shift) * colorimageWidth) + ((int)(v_value * colorimageHeight ) * colorimageWidth);
-
+					//UVEquivalent( depthX,  depthY,  dx,  dy, idimageWidth, idimageHeight, out labelU, out labelV, out labelIndex);
 					if (colorIndex < 0 | colorIndex > 921599) { // Just a precautionary measure to capture pixels with negative UV coordinates
 						//These particles have valid depth values but no color associated with it
 						points[pid].color = new Color(1,1,1,0); //Particles are cut off by making it transparent with alpha value = 0
@@ -294,6 +287,7 @@ public class PDepth : MonoBehaviour {
 						                                               displaydist);
 																		//lmap(value * floatConvertor,0,MaxWorldDepth,0,MaxSceneDepth)*particleDepthWeight);
 					}
+
 				}
 
 				++pid;
@@ -372,17 +366,16 @@ public class PDepth : MonoBehaviour {
 		sourceColorIndex = (int) (ans_x) + (int)(ans_y * UndistortedColorWidth);
 	}
 
-	private void UVEquivalent(int fromWidth, int fromHeight, float fromU, int fromV, int toWidth, int toHeight, out float toU, out float toV, out int toIndex)
+	private void UVEquivalent(int fromWidth, int fromHeight, int fromU, int fromV, int toWidth, int toHeight, out int toU, out int toV, out int toIndex)
 	{
-		float uNorm = fromU / (float)fromWidth;
+		float uNorm = (float)fromU / (float)fromWidth;
 		float vNorm = (float)fromV / (float)fromHeight;
 		
-		toU = (uNorm * (float)toWidth);
-		toV = (vNorm * (float)toHeight);
+		toU = (int)(uNorm * toWidth);
+		toV = (int)(vNorm * toHeight);
 		
 		toIndex = (int) (toU + toV * (float)toWidth);
 	}
-
 
 	// A remapping process that returns a value from the 0 to 1 range.
 	private float lmap(float val, float min0, float max0, float min1, float max1)

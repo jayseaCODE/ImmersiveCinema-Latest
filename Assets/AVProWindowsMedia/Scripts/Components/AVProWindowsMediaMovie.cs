@@ -103,7 +103,7 @@ public class AVProWindowsMediaMovie : MonoBehaviour
 			_moviePlayer.Loop = _loop;
 			if (autoPlay)
 			{
-				_moviePlayer.Play();
+				_moviePlayer.Play(); //movie plays here
 			}
 		}
 		else

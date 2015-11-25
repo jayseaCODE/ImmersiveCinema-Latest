@@ -5,6 +5,7 @@ using System.Collections;
 using Iisu.Data;
 using System.IO;
 using Emgu.CV;
+using UnityEngine.UI; //For Canvas, Text, GUI
 
 /// <summary>
 /// Helper class to convert iisu (color and depth) images to Unity point cloud through iisu UV-mapping
@@ -31,20 +32,28 @@ public class PDepth2 : MonoBehaviour {
 	private ParticleSystem.Particle[] points; //holds individual particle objects
 	private int Xstep, Ystep; //Control spacing between particles
 	
-	private byte[] depthimageRaw, UVimageRaw, colorimageRaw, colorUndistortedimageRaw;
-	private IImageData depthimage, uvimagemap, colorimage;
-	private int depthX, depthY, colorimageWidth, colorimageHeight;
+	private byte[] depthimageRaw, UVimageRaw, colorimageRaw, colorUndistortedimageRaw, idimageRaw;
+	private IImageData depthimage, uvimagemap, colorimage, idimage;
+	private int depthX, depthY, colorimageWidth, colorimageHeight, idimageWidth, idimageHeight;
 	private float floatConvertor = 1f / 255f;
-	public Camera OculusCamera;
 	public Transform OculusTransform;
 	public float headTimer=0f; 
 	private float fadeOutWaitingTimer = 1f; // Timer used to smoothen the fading out of real world
 	private float fadeInWaitingTimer = 1f; // Timer used to smoothen the fading into real world
 	public float quaternion_y=0f, Prev_quaternion_y=0f;
-	public float timeToShakeHead = 1f;
+	public float timeToShakeHead = 1f; //should be 0.15f
 	public float changesInY = 0f, signChangesInY = 0f;
 	public float currentSign = 1.0f; //Start out with positive
-	public float speed=0f;
+	private bool UserHeadMovement_bool = false;
+	private float UserHeadMovement_sensitivity = 0.04f;
+	public GameObject GUI;
+	public Text DepthDistText;
+	public Text HeadShakingText;
+	public Text HeadShakingSensitText;
+	private bool GUI_bool = false;
+	public GameObject FPSDisplay;
+	private bool framerate_bool = false;
+	//public float speed=0f;
 	/*
 	 * Note that the particle system size grid is fixed, but we can change its particle spacing which tentatively reduces
 	 * the number of particles in the whole particle system. We could change the whole size of the particle system grid in
@@ -78,23 +87,10 @@ public class PDepth2 : MonoBehaviour {
 	Matrix<byte> N3 = new Matrix<byte>(3,240); // Mask array to update only 2nd row of N1 with the right dy values
 	Emgu.CV.Mat cvdepthUndistorted, cvcolorUndistorted;//, depthDrawableImage;
 	Emgu.CV.Mat cvdepthSource, cvcolorSource, cvdepthSource2, cvcolorSource2;
-
-	public Material ps_material;
-	public ComputeShader ps_computeShader;
-//	ComputeBuffer ps_buffer;
-//	int ps_count;
-//	float[] ps_points;
-	//ComputeBuffer depthimageRawBuffer;
-//	ComputeBuffer colorimageRawBuffer;
-//	ComputeBuffer colorUndistortedimageRawBuffer;
-//	ComputeBuffer UVimageRawBuffer;
-	ComputeBuffer ps_xyzpositions_buffer;
-	ComputeBuffer argBuffer;
-	int[] args = new int[]{ 0, 1, 0, 0 };
-	//Texture2D depthimageTex;
 	
 	// Populate the particle grid
 	void Start () {
+		idimage = IisuInput.LabelImage;
 		depthimage = IisuInput.DepthMap;
 		depthX = (int)depthimage.ImageInfos.Width; //320
 		depthY = (int)depthimage.ImageInfos.Height; //240
@@ -102,6 +98,8 @@ public class PDepth2 : MonoBehaviour {
 		colorimage = IisuInput.ColorMap;
 		colorimageWidth = (int)colorimage.ImageInfos.Width; //1280
 		colorimageHeight = (int)colorimage.ImageInfos.Height; //720
+		idimageWidth = (int)idimage.ImageInfos.Width;
+		idimageHeight = (int)idimage.ImageInfos.Height;
 		
 		points = new ParticleSystem.Particle[(endXindex-startXindex)*(endYindex-startYindex)];//new ParticleSystem.Particle[Xgrid*Ygrid];
 		Xstep = depthX/Xgrid;
@@ -156,55 +154,159 @@ public class PDepth2 : MonoBehaviour {
 			N1.Data[1,dx-startXindex] = 1;  N2.Data[1,dx-startXindex] = M2.Data[1,0]; N3.Data[1,dx-startXindex] = 255;
 			N1.Data[2,dx-startXindex] = 1;  N2.Data[2,dx-startXindex] = M2.Data[2,0]; N3.Data[2,dx-startXindex] = 0;
 		}
-
-		//Particle system set-up
-//		ps_count = (int)depthimage.ImageInfos.Width*(int)depthimage.ImageInfos.Height;
-//		ps_buffer = new ComputeBuffer(ps_count, sizeof(float)*3, ComputeBufferType.Default);
-//		ps_points = new float[ps_count*3];
-
-//		depthimageRawBuffer = new ComputeBuffer((int)depthimage.ImageInfos.BytesRaw/2, sizeof(UInt16), ComputeBufferType.Default);
-//		ps_xyzpositions_buffer = new ComputeBuffer(320*240, sizeof(float)*3);
-		ps_xyzpositions_buffer = new ComputeBuffer(320*240, sizeof(float)*3, ComputeBufferType.Append);
-		argBuffer = new ComputeBuffer(4, sizeof(int), ComputeBufferType.DrawIndirect);
-
-		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
-		ps_computeShader.SetFloat("height",240);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
-		ps_computeShader.SetFloat("width",320);//(endXindex-startXindex));
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		// Initialization
+		if (depthimage == null || idimage == null )
+			return;
+		if (depthimage.Raw == IntPtr.Zero || idimage.Raw == IntPtr.Zero)
+			return;
+		if (depthimageRaw == null || depthimageRaw.Length != depthimage.ImageInfos.BytesRaw)
+			depthimageRaw = new byte[depthimage.ImageInfos.BytesRaw];
+		colorimageRaw = new byte[colorimage.ImageInfos.BytesRaw];
+		colorUndistortedimageRaw = new byte[480*640*1*4];
+		if (UVimageRaw == null || UVimageRaw.Length != uvimagemap.ImageInfos.BytesRaw)
+			UVimageRaw = new byte[uvimagemap.ImageInfos.BytesRaw];
+		if (idimageRaw == null || idimageRaw.Length != idimage.ImageInfos.BytesRaw)
+			idimageRaw = new byte[idimage.ImageInfos.BytesRaw];
+		uint byte_size = (uint)depthimage.ImageInfos.BytesRaw;
+		//Debug.Log("color byte size "+color_byte_size);
+		uint UV_byte_size = (uint)uvimagemap.ImageInfos.BytesRaw;
+		uint color_byte_size = (uint)colorimage.ImageInfos.BytesRaw;
+		uint labelImageSize = (uint)idimage.ImageInfos.BytesRaw;
+		// Resize color image from 1280x720 to 640x480, distort this color image and also the 320x240 depth image
+		Emgu.CV.CvInvoke.Resize (cvcolorSource, cvcolorSource2, cvcolorSource2.Size, 0.5, 0.66666666666, Emgu.CV.CvEnum.Inter.Linear);
+		Emgu.CV.CvInvoke.Undistort(cvdepthSource, cvdepthUndistorted, depthIntrinsicsMat, depthDistortCoeff, null);
+		Emgu.CV.CvInvoke.Undistort(cvcolorSource2, cvcolorUndistorted, colorIntrinsicsMat, colorDistortCoeff, null);
+		// Copy image content into managed arrays
+		Marshal.Copy(cvdepthUndistorted.DataPointer, depthimageRaw, 0, (int)byte_size);
+		Marshal.Copy(cvcolorUndistorted.DataPointer, colorUndistortedimageRaw, 0, (int)480*640*1*4);
+		//		Marshal.Copy(depthimage.Raw, depthimageRaw, 0, (int)byte_size);
+		Marshal.Copy(colorimage.Raw, colorimageRaw, 0, (int)color_byte_size);
+		Marshal.Copy(uvimagemap.Raw, UVimageRaw, 0, (int)UV_byte_size);
+		Marshal.Copy(idimage.Raw, idimageRaw, 0, (int)labelImageSize);
 		
-		ps_computeShader.Dispatch(0, 320/32, 240/32, 1);
-		argBuffer.SetData(args);
-		ComputeBuffer.CopyCount(ps_xyzpositions_buffer, argBuffer, 0);
-	}
-
-	void Update() {
-		//must reset particles verts to 0 each frame.
-		ps_xyzpositions_buffer.SetData(new float[320*240*3]);
-//
-//		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
-//		ps_computeShader.SetFloat("height",120);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
-//		ps_computeShader.SetFloat("width",160);//(endXindex-startXindex));
-//		
-//		ps_computeShader.Dispatch(0, 40/8, 40/8, 1);
-		ps_computeShader.SetBuffer(0,"xyzpositions_buffer",ps_xyzpositions_buffer);
-		ps_computeShader.SetFloat("height",240);//(endYindex-startYindex)-1); //Make the height 184, instead of 185
-		ps_computeShader.SetFloat("width",320);//(endXindex-startXindex));
+		//Profiler.BeginSample("Head-checks");
+		if (Input.GetButtonDown("Fire1")) {
+			UserHeadMovement_bool = !UserHeadMovement_bool;
+		}
+		if (UserHeadMovement_bool) {
+			// Check for head movement
+			UserHeadMovement();
+		}
+		UserHeadMovement_sensitivity = UserHeadMovement_sensitivity + (Input.GetAxisRaw("Horizontal")*0.001f);
+		particleDepthDist = particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
+		if (Input.GetButtonDown("Jump")) GUI_bool = !GUI_bool;
+		if (GUI_bool) {
+			// Display GUI
+			DepthDistText.text = "Depth Dist " + particleDepthDist;
+			if (UserHeadMovement_bool) HeadShakingText.text = "Head Shaking ON";
+			else HeadShakingText.text = "Head Shaking OFF";
+			HeadShakingSensitText.text = "Head Sensitivity " + UserHeadMovement_sensitivity.ToString("F2");
+			GUI.SetActive(true);
+		}
+		else {
+			// Hide GUI
+			GUI.SetActive(false);
+		}
+		if (Input.GetButtonDown ("f")) framerate_bool = !framerate_bool;
+		if (framerate_bool) FPSDisplay.SetActive(true);
+		else FPSDisplay.SetActive(false);
+		//Profiler.EndSample();
 		
-		ps_computeShader.Dispatch(0, 640/32, 480/32, 1);
-		argBuffer.SetData(args);
-		ComputeBuffer.CopyCount(ps_xyzpositions_buffer, argBuffer, 0);
-	}
-
-	void OnRenderObject() {
-		ps_material.SetPass(0);
-		ps_material.SetBuffer("buffer", ps_xyzpositions_buffer);
-		ps_material.SetMatrix("cameraToWorldMatrix", OculusCamera.cameraToWorldMatrix);
-//		Graphics.DrawProcedural(MeshTopology.Points, 320*240);
-		Graphics.DrawProceduralIndirect(MeshTopology.Points, argBuffer, 0);
-	}
-
-	void OnDestroy() {
-		ps_xyzpositions_buffer.Release();
-		argBuffer.Release();
+		int pid=0, colorIndex=0, toIndex=0;
+		float u_value, v_value;
+		int labelU, labelV, labelIndex;
+		//Profiler.BeginSample("ForLoop");
+		for(int dy=startYindex;dy<endYindex;dy+=Ystep)
+		{
+			// Speed up multiplication calculations for indexEquivalent()
+			N1.SetValue(dy, N3); // Update only 2nd row of N1 with the right dy values
+			Emgu.CV.CvInvoke.Gemm(M1, N1, 1, N2, 1, ans, 0);
+			
+			for(int dx=startXindex;dx<endXindex;dx+=Xstep)
+			{
+				int didx = dy*depthX+dx; //Index of pixel in the depth image
+				
+				// reconstruct ushort value from 2 bytes (low endian) - Depth values from Depth Map
+				ushort value = (ushort)(depthimageRaw[didx * 2] + (depthimageRaw[didx * 2 + 1] << 8));
+				if (value > 1499) { //Particles covering the rest of the surroundings (Out of the camera's detection sweet spot)
+					value = 1500;
+				}
+				
+				if(value>=particleDepthDist) //Particle depth cut-off limit, in millimeters
+				{
+					points[pid].color = new Color(1,0,0,0); //Particles are cut off by making it transparent with alpha value = 0
+				}
+				
+				//Rendering of Surroundings through depth to color mapping based on RGB camera and depth camera intrinsics and extrinsics
+				else if (particleDepthDist > 1499 && value == 1500) { 
+					// Get the correct index of a pixel in the undistorted color image byte array by its calculated mapped coordinates
+					indexEquivalent( dx, 640, out toIndex);
+					//					UVEquivalent( depthX,  depthY,  dx,  dy, 640, 480, out u_value, out v_value, out toIndex);
+					
+					if (toIndex < 0 || toIndex > 307199) {
+						points[pid].color = new Color(1,1,1,0);
+					}
+					else {
+						byte B = (colorUndistortedimageRaw[toIndex * 4]);
+						byte G = (colorUndistortedimageRaw[toIndex * 4 + 1]);
+						byte R = (colorUndistortedimageRaw[toIndex * 4 + 2]);
+						byte A = (colorUndistortedimageRaw[toIndex * 4 + 3]);
+						points[pid].color = new Color(R*floatConvertor, G*floatConvertor, B*floatConvertor, A*floatConvertor);
+						points[pid].position = new UnityEngine.Vector3(dx*NormRatioBackgroundX+backgroundXoffset,
+						                                               (depthY-dy)*NormRatioBackgroundY+backgroundYoffset,
+						                                               displaydist);
+						//lmap(value * floatConvertor,0,MaxWorldDepth,0,MaxSceneDepth)*particleDepthWeight);
+					}
+				}
+				
+				else {
+					// Get the UV coordinates from the Registration mapping image - UV map
+					u_value = System.BitConverter.ToSingle(UVimageRaw, didx * 8);
+					v_value = System.BitConverter.ToSingle(UVimageRaw, didx * 8 + 4);
+					
+					// Assign appropriate shifting value based on pixel depth value
+					UVmap_shift = 0.0;
+					if (value < 750) {
+						if (value <= 300) { UVmap_shift = 0.04;}
+						else { UVmap_shift = 0.04 / Math.Pow(2.0, (((double)value/250.0)-1.0)/0.5 ); }
+					}
+					
+					// Get the correct index of a pixel in the color image byte array by its UV coordinates
+					colorIndex = (int)((u_value+UVmap_shift) * colorimageWidth) + ((int)(v_value * colorimageHeight ) * colorimageWidth);
+					UVEquivalent( depthX,  depthY,  dx,  dy, idimageWidth, idimageHeight, out labelU, out labelV, out labelIndex);
+					if (colorIndex < 0 | colorIndex > 921599) { // Just a precautionary measure to capture pixels with negative UV coordinates
+						//These particles have valid depth values but no color associated with it
+						points[pid].color = new Color(1,1,1,0); //Particles are cut off by making it transparent with alpha value = 0
+						//Total number of pixels is 921600 in the 1280x720 color image
+					}
+					else if (idimageRaw[labelIndex]== IisuInput.Hand1Label) points[pid].color = new Color(0f, 1f, 0f);
+					else if (idimageRaw[labelIndex]== IisuInput.Hand2Label) points[pid].color = new Color(0f, 0f, 1f);
+					else {//if ( u_value > 0.249 && u_value < 0.749) { //Take a smaller color image area to fit the resolution of Oculus Lens
+						// Extract the byte values B, G, R, A from the stored color raw data
+						byte B = (colorimageRaw[colorIndex * 4]);
+						byte G = (colorimageRaw[colorIndex * 4 + 1]);
+						byte R = (colorimageRaw[colorIndex * 4 + 2]);
+						byte A = (colorimageRaw[colorIndex * 4 + 3]);
+						points[pid].color = new Color(R*floatConvertor, G*floatConvertor, B*floatConvertor, A*floatConvertor);
+						points[pid].position = new UnityEngine.Vector3(dx*NormRatioGridX+gridXoffset, 
+						                                               (depthY-dy)*NormRatioGridY+gridYoffset,
+						                                               displaydist);
+						//lmap(value * floatConvertor,0,MaxWorldDepth,0,MaxSceneDepth)*particleDepthWeight);
+					}
+					
+				}
+				
+				++pid;
+				
+			}
+		}
+		//Profiler.EndSample();
+		PS.SetParticles(points, points.Length);
+		
 	}
 	
 	private void UserHeadMovement()
@@ -229,7 +331,7 @@ public class PDepth2 : MonoBehaviour {
 		}
 		else {
 			quaternion_y = OculusTransform.rotation.y;
-			if ( (quaternion_y - Prev_quaternion_y) > 0.04 ) {  //0.05
+			if ( (quaternion_y - Prev_quaternion_y) > UserHeadMovement_sensitivity ) {  //0.05
 				if (currentSign < 0) {
 					signChangesInY += 1; // Add one to number of sign changes
 					currentSign *= -1; // Switch the sign from negative to positive
@@ -274,17 +376,16 @@ public class PDepth2 : MonoBehaviour {
 		sourceColorIndex = (int) (ans_x) + (int)(ans_y * UndistortedColorWidth);
 	}
 	
-	private void UVEquivalent(int fromWidth, int fromHeight, float fromU, int fromV, int toWidth, int toHeight, out float toU, out float toV, out int toIndex)
+	private void UVEquivalent(int fromWidth, int fromHeight, int fromU, int fromV, int toWidth, int toHeight, out int toU, out int toV, out int toIndex)
 	{
-		float uNorm = fromU / (float)fromWidth;
+		float uNorm = (float)fromU / (float)fromWidth;
 		float vNorm = (float)fromV / (float)fromHeight;
 		
-		toU = (uNorm * (float)toWidth);
-		toV = (vNorm * (float)toHeight);
+		toU = (int)(uNorm * toWidth);
+		toV = (int)(vNorm * toHeight);
 		
 		toIndex = (int) (toU + toV * (float)toWidth);
 	}
-	
 	
 	// A remapping process that returns a value from the 0 to 1 range.
 	private float lmap(float val, float min0, float max0, float min1, float max1)
