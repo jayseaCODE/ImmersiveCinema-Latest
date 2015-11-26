@@ -17,8 +17,8 @@ public class IisuInputProvider : MonoBehaviour
 	private IDataHandle<int> _hand1ID;
 	private IDataHandle<int> _hand2ID;
 	private delegate void OnPoseDelegate(string gestureName, int handId1, int handId2, uint gestureId);
-	private List<uint> _poseIDsDetected;
-	private IDataHandle<Iisu.Data.IImageData> _labelImage;
+	private delegate void OnMoveDelegate(string gestureName, int handId1, int handId2, uint gestureId);
+	private List<uint> _poseIDsDetected, _moveIDsDetected;
 	
 	private IDataHandle<Iisu.Data.IImageData> _depthImage;
 	private IDataHandle<Iisu.Data.IImageData> _colorImage; //Me:
@@ -39,8 +39,9 @@ public class IisuInputProvider : MonoBehaviour
 		_hand1ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND1.Label");
 		_hand2ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND2.Label");
 		_iisuUnity.Device.EventManager.RegisterEventListener("CI.HandPosingGesture", new OnPoseDelegate(OnPoseEvent));
+		_iisuUnity.Device.EventManager.RegisterEventListener("CI.HandMovingGesture", new OnMoveDelegate(OnMoveEvent));
 		_poseIDsDetected = new List<uint>();
-		_labelImage = _iisuUnity.Device.RegisterDataHandle<Iisu.Data.IImageData> ("CI.SceneLabelImage");
+		_moveIDsDetected = new List<uint>();
 
 		//register iisu data needed to display the depthimage
 		_depthImage = _iisuUnity.Device.RegisterDataHandle<Iisu.Data.IImageData> ("SOURCE.CAMERA.DEPTH.Image"); //Me: This is the depth map image
@@ -74,10 +75,23 @@ public class IisuInputProvider : MonoBehaviour
 			return poses;	
 		}
 	}
+	public List<uint> DetectedMoves
+	{
+		get
+		{
+			List<uint> moves = new List<uint>(_moveIDsDetected);
+			_moveIDsDetected.Clear();
+			return moves;	
+		}
+	}
 	
 	private void OnPoseEvent(string gestureName, int handId1, int handId2, uint gestureId)
 	{
 		_poseIDsDetected.Add(gestureId);
+	}
+	private void OnMoveEvent(string gestureName, int handId1, int handId2, uint gestureId) //(const SK::String& name, int32 handId1, int32 handId2, int32 posingGestureId)
+	{
+		_moveIDsDetected.Add(gestureId);
 	}
 	
 //	public IDevice Device
@@ -115,34 +129,34 @@ public class IisuInputProvider : MonoBehaviour
 	/// <summary>
 	/// The IDs of the label image indicate which pixels of the depthmap belong to a certain object, in this case the hand.
 	/// </summary>
-	public int Hand1Label 
-	{
-		get 
-		{ 
-			return _hand1ID.Value; 
-		}
-	}
+//	public int Hand1Label 
+//	{
+//		get 
+//		{ 
+//			return _hand1ID.Value; 
+//		}
+//	}
 
 	/// <summary>
 	/// The IDs of the label image indicate which pixels of the depthmap belong to a certain object, in this case the hand.
 	/// </summary>
-	public int Hand2Label 
-	{
-		get 
-		{ 
-			return _hand2ID.Value; 
-		}
-	}
+//	public int Hand2Label 
+//	{
+//		get 
+//		{ 
+//			return _hand2ID.Value; 
+//		}
+//	}
 
 	/// <summary>
 	/// Provides the label image that contains the IDs for each depth pixel to define pixels that belong to the same object in the scene.
 	/// </summary>
-	public Iisu.Data.IImageData LabelImage 
-	{
-		get 
-		{ 
-			return _labelImage.Value; 
-		}
-	}
+//	public Iisu.Data.IImageData LabelImage 
+//	{
+//		get 
+//		{ 
+//			return _labelImage.Value; 
+//		}
+//	}
 	
 }

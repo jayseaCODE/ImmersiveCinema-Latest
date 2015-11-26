@@ -44,16 +44,15 @@ public class PDepth : MonoBehaviour {
 	public float timeToShakeHead = 1f; //should be 0.15f
 	public float changesInY = 0f, signChangesInY = 0f;
 	public float currentSign = 1.0f; //Start out with positive
-	private bool UserHeadMovement_bool = false;
+//	public GameObject GUI;
+//	public Text DepthDistText;
+//	public Text HeadShakingText;
+//	public Text HeadShakingSensitText;
+//	private bool GUI_bool = false;
+//	private bool UserHeadMovement_bool = false;
 	private float UserHeadMovement_sensitivity = 0.04f;
-	public GameObject GUI;
-	public Text DepthDistText;
-	public Text HeadShakingText;
-	public Text HeadShakingSensitText;
-	private bool GUI_bool = false;
-	public GameObject FPSDisplay;
-	private bool framerate_bool = false;
-	//public float speed=0f;
+//	public GameObject FPSDisplay;
+//	private bool framerate_bool = false;
 	/*
 	 * Note that the particle system size grid is fixed, but we can change its particle spacing which tentatively reduces
 	 * the number of particles in the whole particle system. We could change the whole size of the particle system grid in
@@ -181,33 +180,7 @@ public class PDepth : MonoBehaviour {
 		Marshal.Copy(colorimage.Raw, colorimageRaw, 0, (int)color_byte_size);
 		Marshal.Copy(uvimagemap.Raw, UVimageRaw, 0, (int)UV_byte_size);
 
-		//Profiler.BeginSample("Head-checks");
-		if (Input.GetButtonDown("Fire1")) {
-			UserHeadMovement_bool = !UserHeadMovement_bool;
-		}
-		if (UserHeadMovement_bool) {
-			// Check for head movement
-			UserHeadMovement();
-		}
-		UserHeadMovement_sensitivity = UserHeadMovement_sensitivity + (Input.GetAxisRaw("Horizontal")*0.001f);
-		particleDepthDist = particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
-		if (Input.GetButtonDown("Jump")) GUI_bool = !GUI_bool;
-		if (GUI_bool) {
-			// Display GUI
-			DepthDistText.text = "Depth Dist " + particleDepthDist;
-			if (UserHeadMovement_bool) HeadShakingText.text = "Head Shaking ON";
-			else HeadShakingText.text = "Head Shaking OFF";
-			HeadShakingSensitText.text = "Head Sensitivity " + UserHeadMovement_sensitivity.ToString("F2");
-			GUI.SetActive(true);
-		}
-		else {
-			// Hide GUI
-			GUI.SetActive(false);
-		}
-		if (Input.GetButtonDown ("f")) framerate_bool = !framerate_bool;
-		if (framerate_bool) FPSDisplay.SetActive(true);
-		else FPSDisplay.SetActive(false);
-		//Profiler.EndSample();
+		//GUILogic();
 
 		int pid=0, colorIndex=0, toIndex=0;
 		float u_value, v_value;
@@ -299,7 +272,40 @@ public class PDepth : MonoBehaviour {
 	
 	}
 
-	private void UserHeadMovement()
+	/* This function handles the state management for the black centre GUI which can be shown
+	 * by pressing the spacebar and unshown by the spacebar too. Clicking the left button
+	 * will turn the head-shaking functionality on, clicking again will turn it off. Pressing
+	 * the 'f' button will display the frame-rate count, clicking 'f' again will unshown it.
+	 */
+//	private void GUILogic () { 
+//		if (Input.GetButtonDown("Fire1")) {
+//			UserHeadMovement_bool = !UserHeadMovement_bool;
+//		}
+//		if (UserHeadMovement_bool) {
+//			// Check for head movement
+//			UserHeadMovement();
+//		}
+//		UserHeadMovement_sensitivity = UserHeadMovement_sensitivity + (Input.GetAxisRaw("Horizontal")*0.001f);
+//		particleDepthDist = particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
+//		if (Input.GetButtonDown("Jump")) GUI_bool = !GUI_bool;
+//		if (GUI_bool) {
+//			// Display GUI
+//			DepthDistText.text = "Depth Dist " + particleDepthDist;
+//			if (UserHeadMovement_bool) HeadShakingText.text = "Head Shaking ON";
+//			else HeadShakingText.text = "Head Shaking OFF";
+//			HeadShakingSensitText.text = "Head Sensitivity " + UserHeadMovement_sensitivity.ToString("F2");
+//			GUI.SetActive(true);
+//		}
+//		else {
+//			// Hide GUI
+//			GUI.SetActive(false);
+//		}
+//		if (Input.GetButtonDown ("f")) framerate_bool = !framerate_bool;
+//		if (framerate_bool) FPSDisplay.SetActive(true);
+//		else FPSDisplay.SetActive(false);
+//	}
+
+	private void UserHeadMovement() //used in GUILogic to implement head-shaking
 	{
 		if (headTimer == 0) {
 			Prev_quaternion_y = quaternion_y;

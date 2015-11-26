@@ -90,7 +90,7 @@ public class PDepth2 : MonoBehaviour {
 	
 	// Populate the particle grid
 	void Start () {
-		idimage = IisuInput.LabelImage;
+//		idimage = IisuInput.LabelImage;
 		depthimage = IisuInput.DepthMap;
 		depthX = (int)depthimage.ImageInfos.Width; //320
 		depthY = (int)depthimage.ImageInfos.Height; //240
@@ -283,8 +283,8 @@ public class PDepth2 : MonoBehaviour {
 						points[pid].color = new Color(1,1,1,0); //Particles are cut off by making it transparent with alpha value = 0
 						//Total number of pixels is 921600 in the 1280x720 color image
 					}
-					else if (idimageRaw[labelIndex]== IisuInput.Hand1Label) points[pid].color = new Color(0f, 1f, 0f);
-					else if (idimageRaw[labelIndex]== IisuInput.Hand2Label) points[pid].color = new Color(0f, 0f, 1f);
+//					else if (idimageRaw[labelIndex]== IisuInput.Hand1Label) points[pid].color = new Color(0f, 1f, 0f);
+//					else if (idimageRaw[labelIndex]== IisuInput.Hand2Label) points[pid].color = new Color(0f, 0f, 1f);
 					else {//if ( u_value > 0.249 && u_value < 0.749) { //Take a smaller color image area to fit the resolution of Oculus Lens
 						// Extract the byte values B, G, R, A from the stored color raw data
 						byte B = (colorimageRaw[colorIndex * 4]);
