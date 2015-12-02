@@ -4,7 +4,7 @@
 // - no per-material color
 // http://docs.unity3d.com/Manual/SL-Shader.html
 
-Shader "Custom/InsideVisible_altered" {
+Shader "Custom/InsideVisible_altered_3D" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {} 
 		//* defines a variable _MainTex which is seen in the Inspector as Base (RGB), to be a 2D texture
@@ -46,7 +46,7 @@ Shader "Custom/InsideVisible_altered" {
 					vertexOutput o; //output vertex
 					o.vertex = mul(UNITY_MATRIX_MVP, v.vertex); //UNITY_MATRIX_MVP is the current model*view*projection matrix
 					v.texcoord.x = 1 - v.texcoord.x; //Added into
-					//v.texcoord.y = v.texcoord.y / 2; //For 3D movies
+					v.texcoord.y = v.texcoord.y / 2; //For 3D movies
 					//o.tex = TRANSFORM_TEX(v.texcoord, _MainTex);
 					o.tex = v.texcoord;
 					//uses the TRANSFORM_TEX macro from UnityCG.cginc to make sure texture scale&offset is applied correctly

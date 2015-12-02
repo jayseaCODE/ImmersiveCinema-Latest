@@ -12,6 +12,7 @@ public class AVProWindowsMediaMaterialApply : MonoBehaviour
 	public AVProWindowsMediaMovie _movie;
 	public string _textureName;
 	public Texture2D _defaultTexture;
+	public PDepth PDepth;
 	private static Texture2D _blackTexture;
 	
 	private static void CreateTexture()
@@ -56,6 +57,8 @@ public class AVProWindowsMediaMaterialApply : MonoBehaviour
 				ApplyMapping(_movie.OutputTexture);
 			else
 				ApplyMapping(_defaultTexture);
+			//Self edit
+			//if (Mathf.Abs(Time.time - 11.0f) < 0.5f) PDepth.particleDepthDist = 1000;
 		}
 	}
 	

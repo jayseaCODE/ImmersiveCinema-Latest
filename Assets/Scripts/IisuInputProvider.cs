@@ -14,8 +14,8 @@ public class IisuInputProvider : MonoBehaviour
 
 	//the IisuUnityBehaviour object handles the iisu device, including its update thread, and disposing.
 	private IisuUnityBehaviour _iisuUnity;
-	private IDataHandle<int> _hand1ID;
-	private IDataHandle<int> _hand2ID;
+//	private IDataHandle<int> _hand1ID;
+//	private IDataHandle<int> _hand2ID;
 	private delegate void OnPoseDelegate(string gestureName, int handId1, int handId2, uint gestureId);
 	private delegate void OnMoveDelegate(string gestureName, int handId1, int handId2, uint gestureId);
 	private List<uint> _poseIDsDetected, _moveIDsDetected;
@@ -36,8 +36,8 @@ public class IisuInputProvider : MonoBehaviour
 		//this has to be done first. Inside the IisuUnityBehaviour object, iisu is initialized, and the update thread for the current device (camera, movie) is started
 		_iisuUnity = GetComponent<IisuUnityBehaviour> ();
 		_iisuUnity.Initialize ();
-		_hand1ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND1.Label");
-		_hand2ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND2.Label");
+//		_hand1ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND1.Label");
+//		_hand2ID = _iisuUnity.Device.RegisterDataHandle<int> ("CI.HAND2.Label");
 		_iisuUnity.Device.EventManager.RegisterEventListener("CI.HandPosingGesture", new OnPoseDelegate(OnPoseEvent));
 		_iisuUnity.Device.EventManager.RegisterEventListener("CI.HandMovingGesture", new OnMoveDelegate(OnMoveEvent));
 		_poseIDsDetected = new List<uint>();
