@@ -11,21 +11,28 @@ public class GesturesFeedback : MonoBehaviour {
 	public PDepth PDepth;
 	public GameObject HUD;
 	public SpriteRenderer ArrowUp;
-	public GameObject ArrowDown;
+	public SpriteRenderer ArrowDown;
 	public SpriteRenderer OpenHand;
-	public GameObject ThumbsUp;
-	public GameObject ThumbsDown;
+	public SpriteRenderer ThumbsUp;
+	public SpriteRenderer ThumbsDown;
 	public Text GesturesFeedbackText;
 	public Text DepthDistText;
 	private int DepthDistIncrements;
 	private bool HUD_bool = false;
+	private float fadespeed = 1f;
+	private bool arrowup_bool = false;
+	private bool arrowdown_bool = false;
 	private bool openhand_bool = false;
+	private bool thumbsup_bool = false;
+	private bool thumbsdown_bool = false;
 	
 	void Awake()
 	{
 		_poses = new List<uint>();
 		_moves = new List<uint>();
 		OpenHand.color = Color.clear;
+		ThumbsUp.color = Color.clear;
+		ThumbsDown.color = Color.clear;
 	}
 
 	void Start()
@@ -47,41 +54,31 @@ public class GesturesFeedback : MonoBehaviour {
 			}
 		}
 		// Update GUI text and display it to HUD
-		format = "Detected poses (id):" +'\n';
-		/* I think the problem with putting the pose fadeouts here is with storing the pose values in _poses
-		 * It will not work as we just need one occurence of either "Open hand" or "thumbs up" or "thumbs down"
-		 * and set the fading to happen.
-		 */
-//		for(int i = _poses.Count - 1; i >= 0; --i) 
-//		{
-//			poseID = _poses[i].ToString();
-//			if (poseID == "0") {
-//				format += "Open Hand\n";
-//			}
-//			else if (poseID == "6")	{
-//				format += "Thumbs Up\n";
-//			}
-//			else if (poseID == "8") {
-//				format += "Thumbs Down\n";
-//			}
-//		}
+		//Apply fading based on gesture bool variables
 		if (openhand_bool) OpenHand.color = new Color(0,0,0,1);
-		else OpenHand.color = Color.Lerp (OpenHand.color, Color.clear, Time.deltaTime);
+		else OpenHand.color = Color.Lerp (OpenHand.color, Color.clear, fadespeed*Time.deltaTime); 
 		openhand_bool = false;
-		//format += "Detected moves (id):" +'\n';
+		if (thumbsup_bool) ThumbsUp.color = new Color(0,0,0,1);
+		else ThumbsUp.color = Color.Lerp (ThumbsUp.color, Color.clear, fadespeed*Time.deltaTime);
+		thumbsup_bool = false;
+		if (thumbsdown_bool) ThumbsDown.color = new Color(0,0,0,1);
+		else ThumbsDown.color = Color.Lerp (ThumbsDown.color, Color.clear, fadespeed*Time.deltaTime);
+		thumbsdown_bool = false;
+		//Check for waveing movement
 		for(int i = moves.Count - 1; i >= 0; --i)
 		{
 			moveID = moves[i].ToString(); //format += moveID + "\n";
 			if (moveID != null) HUD_bool = !HUD_bool;
 		}
-		// Displaying the HUD
+		// Display/Undisplay the HUD
 		if (!HUD_bool) {
 			HUD.SetActive(true);
 		}
 		else {
 			HUD.SetActive(false);
 		}
-		// Based on pose gesture, change the depth distance increment value, then apply it
+		// Based on pose gesture, set up fading and change the depth distance increment value
+		format = "Detected poses (id):" +'\n';
 		if (poses.Count > 0) {
 			if (poses[poses.Count - 1] == 0) {
 				format += "Open Hand\n";
@@ -89,20 +86,22 @@ public class GesturesFeedback : MonoBehaviour {
 				DepthDistIncrements = 0;
 			}
 			else if (poses[poses.Count - 1] == 6) {
-				format += "Thumbs Up\n"; 
-				DepthDistIncrements = 5;
+				format += "Thumbs Up\n";
+				thumbsup_bool = true;
+				DepthDistIncrements = 3;
 			}
 			else if (poses[poses.Count - 1] == 8) {
 				format += "Thumbs Down\n";
-				DepthDistIncrements = -5;
+				thumbsdown_bool = true;
+				DepthDistIncrements = -3;
 			}
 		}
 		GesturesFeedbackText.text = format;
+		if (PDepth.particleDepthDist > 1550 && DepthDistIncrements > 0) DepthDistIncrements = 0;
+		if (PDepth.particleDepthDist < -50 && DepthDistIncrements < 0) DepthDistIncrements = 0;
 		PDepth.particleDepthDist = PDepth.particleDepthDist + DepthDistIncrements;
 		// Checking for up/down button input to adjust depth distance
-		if (PDepth.particleDepthDist > 0 && PDepth.particleDepthDist < 1550) {
-			PDepth.particleDepthDist = PDepth.particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
-		}
+		PDepth.particleDepthDist = PDepth.particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
 		//Update the GUI depth distance value
 		DepthDistText.text = "Depth Dist " + PDepth.particleDepthDist;
 	}
