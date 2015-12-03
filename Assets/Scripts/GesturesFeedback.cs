@@ -25,6 +25,8 @@ public class GesturesFeedback : MonoBehaviour {
 	private bool openhand_bool = false;
 	private bool thumbsup_bool = false;
 	private bool thumbsdown_bool = false;
+	private Color ArrowUp_origcolor;
+	private Color ArrowDown_origcolor;
 	
 	void Awake()
 	{
@@ -33,6 +35,10 @@ public class GesturesFeedback : MonoBehaviour {
 		OpenHand.color = Color.clear;
 		ThumbsUp.color = Color.clear;
 		ThumbsDown.color = Color.clear;
+		ArrowUp_origcolor = ArrowUp.color;
+		ArrowUp.color = Color.clear;
+		ArrowDown_origcolor = ArrowDown.color;
+		ArrowDown.color = Color.clear;
 	}
 
 	void Start()
@@ -84,16 +90,22 @@ public class GesturesFeedback : MonoBehaviour {
 				format += "Open Hand\n";
 				openhand_bool = true;
 				DepthDistIncrements = 0;
+				ArrowUp.color = Color.clear;
+				ArrowDown.color = Color.clear;
 			}
 			else if (poses[poses.Count - 1] == 6) {
 				format += "Thumbs Up\n";
 				thumbsup_bool = true;
 				DepthDistIncrements = 3;
+				ArrowUp.color = ArrowUp_origcolor;
+				ArrowDown.color = Color.clear;
 			}
 			else if (poses[poses.Count - 1] == 8) {
 				format += "Thumbs Down\n";
 				thumbsdown_bool = true;
 				DepthDistIncrements = -3;
+				ArrowUp.color = Color.clear;
+				ArrowDown.color = ArrowDown_origcolor;
 			}
 		}
 		GesturesFeedbackText.text = format;
@@ -105,18 +117,4 @@ public class GesturesFeedback : MonoBehaviour {
 		//Update the GUI depth distance value
 		DepthDistText.text = "Depth Dist " + PDepth.particleDepthDist;
 	}
-
-//	IEnumerator FadeIn(SpriteRenderer gesture) {
-//		for (float f = 0f; f <= 1; f += 0.1f) {
-//			Color c = gesture.color;
-//			c.a = f;
-//			gesture.color = c;
-//		}
-//		for (float f = 1f; f >= 0; f -= 0.1f) {
-//			Color c = gesture.color;
-//			c.a = f;
-//			gesture.color = c;
-//			yield return null;
-//		}
-//	}
 }
