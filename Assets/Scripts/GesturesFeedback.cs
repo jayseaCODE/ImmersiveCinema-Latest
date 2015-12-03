@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class GesturesFeedback : MonoBehaviour {
 
 	public IisuInputProvider InputProvider;
-	private List<uint> _poses, _moves, poses, moves;
+	private List<uint> poses, moves;
 
 	public PDepth PDepth;
 	public GameObject HUD;
@@ -15,23 +15,20 @@ public class GesturesFeedback : MonoBehaviour {
 	public SpriteRenderer OpenHand;
 	public SpriteRenderer ThumbsUp;
 	public SpriteRenderer ThumbsDown;
-	public Text GesturesFeedbackText;
+//	public Text GesturesFeedbackText; //For programmer text feedback
 	public Text DepthDistText;
 	private int DepthDistIncrements;
 	private bool HUD_bool = false;
-	private float fadespeed = 1f;
-	private bool arrowup_bool = false;
-	private bool arrowdown_bool = false;
+	private float fadespeed = 1.5f;
 	private bool openhand_bool = false;
 	private bool thumbsup_bool = false;
 	private bool thumbsdown_bool = false;
 	private Color ArrowUp_origcolor;
 	private Color ArrowDown_origcolor;
+	private int prev_particleDepthDist;
 	
 	void Awake()
 	{
-		_poses = new List<uint>();
-		_moves = new List<uint>();
 		OpenHand.color = Color.clear;
 		ThumbsUp.color = Color.clear;
 		ThumbsDown.color = Color.clear;
@@ -47,18 +44,11 @@ public class GesturesFeedback : MonoBehaviour {
 	}
 	
 	void Update () {
-		string format = null , poseID = null, moveID= null;
+		prev_particleDepthDist = PDepth.particleDepthDist; //To record changes in depthdist
+		string moveID = null; //, format = null;
 		// Checking for posing and moving gestures
 		poses = InputProvider.DetectedPoses;
 		moves = InputProvider.DetectedMoves;
-		foreach(uint pose in poses)
-		{
-			_poses.Add(pose);
-			if(_poses.Count == 5)
-			{
-				_poses.RemoveAt(0);
-			}
-		}
 		// Update GUI text and display it to HUD
 		//Apply fading based on gesture bool variables
 		if (openhand_bool) OpenHand.color = new Color(0,0,0,1);
@@ -84,37 +74,54 @@ public class GesturesFeedback : MonoBehaviour {
 			HUD.SetActive(false);
 		}
 		// Based on pose gesture, set up fading and change the depth distance increment value
-		format = "Detected poses (id):" +'\n';
+		//format = "Detected poses (id):" +'\n';
 		if (poses.Count > 0) {
 			if (poses[poses.Count - 1] == 0) {
-				format += "Open Hand\n";
+//				format += "Open Hand\n"; //For programmer text feedback
 				openhand_bool = true;
 				DepthDistIncrements = 0;
-				ArrowUp.color = Color.clear;
-				ArrowDown.color = Color.clear;
 			}
 			else if (poses[poses.Count - 1] == 6) {
-				format += "Thumbs Up\n";
+//				format += "Thumbs Up\n"; //For programmer text feedback
 				thumbsup_bool = true;
 				DepthDistIncrements = 3;
-				ArrowUp.color = ArrowUp_origcolor;
-				ArrowDown.color = Color.clear;
 			}
 			else if (poses[poses.Count - 1] == 8) {
-				format += "Thumbs Down\n";
+//				format += "Thumbs Down\n"; //For programmer text feedback
 				thumbsdown_bool = true;
 				DepthDistIncrements = -3;
-				ArrowUp.color = Color.clear;
-				ArrowDown.color = ArrowDown_origcolor;
 			}
 		}
-		GesturesFeedbackText.text = format;
+		// Checking for up/down button input to adjust depth distance and spacebar STOP button - Wizard of Oz
+		if (Input.GetAxisRaw("Vertical") > 0) {
+			thumbsup_bool = true;
+			DepthDistIncrements = 3;
+		}
+		else if (Input.GetAxisRaw("Vertical") < 0) {
+			thumbsdown_bool = true;
+			DepthDistIncrements = -3;
+		}
+		else if (Input.GetButtonDown("Jump")) {
+			openhand_bool = true;
+			DepthDistIncrements = 0;
+		}
+//		GesturesFeedbackText.text = format; //For programmer text feedback
 		if (PDepth.particleDepthDist > 1550 && DepthDistIncrements > 0) DepthDistIncrements = 0;
-		if (PDepth.particleDepthDist < -50 && DepthDistIncrements < 0) DepthDistIncrements = 0;
+		else if (PDepth.particleDepthDist < -50 && DepthDistIncrements < 0) DepthDistIncrements = 0;
 		PDepth.particleDepthDist = PDepth.particleDepthDist + DepthDistIncrements;
-		// Checking for up/down button input to adjust depth distance
-		PDepth.particleDepthDist = PDepth.particleDepthDist + (int)(Input.GetAxisRaw("Vertical")*10);
 		//Update the GUI depth distance value
-		DepthDistText.text = "Depth Dist " + PDepth.particleDepthDist;
+		DepthDistText.text = PDepth.particleDepthDist.ToString(); //"Depth Dist " + PDepth.particleDepthDist;
+		if (PDepth.particleDepthDist == prev_particleDepthDist) {
+			ArrowUp.color = Color.clear;
+			ArrowDown.color = Color.clear;
+		}
+		else if (PDepth.particleDepthDist > prev_particleDepthDist) {
+			ArrowUp.color = ArrowUp_origcolor;
+			ArrowDown.color = Color.clear;
+		}
+		else {// (PDepth.particleDepthDist < prev_particleDepthDist) {
+			ArrowUp.color = Color.clear;
+			ArrowDown.color = ArrowDown_origcolor;
+		}
 	}
 }
