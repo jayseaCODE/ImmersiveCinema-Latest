@@ -53,6 +53,7 @@ public class PDepth : MonoBehaviour {
 	private float UserHeadMovement_sensitivity = 0.04f;
 //	public GameObject FPSDisplay;
 //	private bool framerate_bool = false;
+	private bool trainingS1_bool = false;
 	/*
 	 * Note that the particle system size grid is fixed, but we can change its particle spacing which tentatively reduces
 	 * the number of particles in the whole particle system. We could change the whole size of the particle system grid in
@@ -176,11 +177,13 @@ public class PDepth : MonoBehaviour {
 		// Copy image content into managed arrays
 		Marshal.Copy(cvdepthUndistorted.DataPointer, depthimageRaw, 0, (int)byte_size);
 		Marshal.Copy(cvcolorUndistorted.DataPointer, colorUndistortedimageRaw, 0, (int)480*640*1*4);
-//		Marshal.Copy(depthimage.Raw, depthimageRaw, 0, (int)byte_size);
 		Marshal.Copy(colorimage.Raw, colorimageRaw, 0, (int)color_byte_size);
 		Marshal.Copy(uvimagemap.Raw, UVimageRaw, 0, (int)UV_byte_size);
 
 		//GUILogic();
+//		if (Input.GetButtonDown ("b")) trainingS1_bool = !trainingS1_bool; //This block of code is for S1 Training
+//		if (trainingS1_bool) particleDepthDist = 1490;
+//		else particleDepthDist = 10;
 
 		int pid=0, colorIndex=0, toIndex=0;
 		float u_value, v_value;

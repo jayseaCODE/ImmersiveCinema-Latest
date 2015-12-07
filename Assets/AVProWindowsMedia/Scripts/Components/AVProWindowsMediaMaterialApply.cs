@@ -58,7 +58,13 @@ public class AVProWindowsMediaMaterialApply : MonoBehaviour
 			else
 				ApplyMapping(_defaultTexture);
 			//Self edit
-			//if (Mathf.Abs(Time.time - 11.0f) < 0.5f) PDepth.particleDepthDist = 1000;
+			//CLOUDSOVERSIDRA
+//			if (Mathf.Abs(Time.time - 0.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 32.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 71.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 99.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 185.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 228.0f) < 0.5f) PDepth.particleDepthDist = 0;
 		}
 	}
 	

@@ -23,14 +23,20 @@ public class GesturesFeedback : MonoBehaviour {
 	private bool openhand_bool = false;
 	private bool thumbsup_bool = false;
 	private bool thumbsdown_bool = false;
+	private Color OpenHand_origcolor;
+	private Color ThumbsUp_origcolor;
+	private Color ThumbsDown_origcolor;
 	private Color ArrowUp_origcolor;
 	private Color ArrowDown_origcolor;
 	private int prev_particleDepthDist;
 	
 	void Awake()
 	{
+		OpenHand_origcolor = OpenHand.color;
 		OpenHand.color = Color.clear;
+		ThumbsUp_origcolor = ThumbsUp.color;
 		ThumbsUp.color = Color.clear;
+		ThumbsDown_origcolor = ThumbsDown.color;
 		ThumbsDown.color = Color.clear;
 		ArrowUp_origcolor = ArrowUp.color;
 		ArrowUp.color = Color.clear;
@@ -51,13 +57,13 @@ public class GesturesFeedback : MonoBehaviour {
 		moves = InputProvider.DetectedMoves;
 		// Update GUI text and display it to HUD
 		//Apply fading based on gesture bool variables
-		if (openhand_bool) OpenHand.color = new Color(0,0,0,1);
+		if (openhand_bool) OpenHand.color = OpenHand_origcolor;
 		else OpenHand.color = Color.Lerp (OpenHand.color, Color.clear, fadespeed*Time.deltaTime); 
 		openhand_bool = false;
-		if (thumbsup_bool) ThumbsUp.color = new Color(0,0,0,1);
+		if (thumbsup_bool) ThumbsUp.color = ThumbsUp_origcolor;
 		else ThumbsUp.color = Color.Lerp (ThumbsUp.color, Color.clear, fadespeed*Time.deltaTime);
 		thumbsup_bool = false;
-		if (thumbsdown_bool) ThumbsDown.color = new Color(0,0,0,1);
+		if (thumbsdown_bool) ThumbsDown.color = ThumbsDown_origcolor;
 		else ThumbsDown.color = Color.Lerp (ThumbsDown.color, Color.clear, fadespeed*Time.deltaTime);
 		thumbsdown_bool = false;
 		//Check for waveing movement
