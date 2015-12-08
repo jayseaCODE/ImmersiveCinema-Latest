@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class GesturesFeedback : MonoBehaviour {
-	
+public class GesturesFeedback_ForEverythingelse : MonoBehaviour {
+
 	public IisuInputProvider InputProvider;
 	private List<uint> poses, moves;
-	
+
 	public PDepth PDepth;
 	public GameObject HUD;
 	public SpriteRenderer ArrowUp;
@@ -15,7 +15,7 @@ public class GesturesFeedback : MonoBehaviour {
 	public SpriteRenderer OpenHand;
 	public SpriteRenderer ThumbsUp;
 	public SpriteRenderer ThumbsDown;
-	//	public Text GesturesFeedbackText; //For programmer text feedback
+//	public Text GesturesFeedbackText; //For programmer text feedback
 	public Text DepthDistText;
 	public int DepthDistIncrements; //For automatic blending in AVProWindowsMediaMaterialApply.cs
 	private bool HUD_bool = false;
@@ -43,7 +43,7 @@ public class GesturesFeedback : MonoBehaviour {
 		ArrowDown_origcolor = ArrowDown.color;
 		ArrowDown.color = Color.clear;
 	}
-	
+
 	void Start()
 	{
 		DepthDistIncrements = 0;
@@ -83,17 +83,17 @@ public class GesturesFeedback : MonoBehaviour {
 		//format = "Detected poses (id):" +'\n';
 		if (poses.Count > 0) {
 			if (poses[poses.Count - 1] == 0) {
-				//				format += "Open Hand\n"; //For programmer text feedback
+//				format += "Open Hand\n"; //For programmer text feedback
 				openhand_bool = true;
 				DepthDistIncrements = 0;
 			}
 			else if (poses[poses.Count - 1] == 6) {
-				//				format += "Thumbs Up\n"; //For programmer text feedback
+//				format += "Thumbs Up\n"; //For programmer text feedback
 				thumbsup_bool = true;
 				DepthDistIncrements = 3;
 			}
 			else if (poses[poses.Count - 1] == 8) {
-				//				format += "Thumbs Down\n"; //For programmer text feedback
+//				format += "Thumbs Down\n"; //For programmer text feedback
 				thumbsdown_bool = true;
 				DepthDistIncrements = -3;
 			}
@@ -111,7 +111,7 @@ public class GesturesFeedback : MonoBehaviour {
 			openhand_bool = true;
 			DepthDistIncrements = 0;
 		}
-		//		GesturesFeedbackText.text = format; //For programmer text feedback
+//		GesturesFeedbackText.text = format; //For programmer text feedback
 		if (PDepth.particleDepthDist > 1550 && DepthDistIncrements > 0) DepthDistIncrements = 0;
 		else if (PDepth.particleDepthDist < -50 && DepthDistIncrements < 0) DepthDistIncrements = 0;
 		PDepth.particleDepthDist = PDepth.particleDepthDist + DepthDistIncrements;
