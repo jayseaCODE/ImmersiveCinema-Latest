@@ -105,20 +105,31 @@ public class AVProWindowsMediaMaterialApply : MonoBehaviour
 //			else if (Mathf.Abs(Time.time - 264.0f) < 0.5f) PDepth.particleDepthDist = 750;
 //			else if (Mathf.Abs(Time.time - 297.0f) < 0.1f) GestureFeedback.DepthDistIncrements = 4;
 			//SHINEORBEMADVR1080-CUT
-			if (Mathf.Abs(Time.time - 0.0f) < 0.1f) PDepth.particleDepthDist = 1550;
-			else if (Mathf.Abs(Time.time - 2.0f) < 0.1f) GestureFeedback.DepthDistIncrements = -9;
-			else if (Mathf.Abs(Time.time - 11.0f) < 0.1f) GestureFeedback.DepthDistIncrements = 0;
-			else if (Mathf.Abs(Time.time - 42.0f) < 0.5f) PDepth.particleDepthDist = 1490;
-			else if (Mathf.Abs(Time.time - 67.0f) < 0.5f) PDepth.particleDepthDist = 0;
-			else if (Mathf.Abs(Time.time - 73.0f) < 0.5f) PDepth.particleDepthDist = 1490;
-			else if (Mathf.Abs(Time.time - 83.0f) < 0.5f) PDepth.particleDepthDist = 0;
-			else if (Mathf.Abs(Time.time - 93.0f) < 0.5f) PDepth.particleDepthDist = 750;
-			else if (Mathf.Abs(Time.time - 104.0f) < 0.5f) PDepth.particleDepthDist = 1490;
-			else if (Mathf.Abs(Time.time - 123.0f) < 0.5f) PDepth.particleDepthDist = 0;
-			else if (Mathf.Abs(Time.time - 132.0f) < 0.5f) PDepth.particleDepthDist = 1490;
-			else if (Mathf.Abs(Time.time - 159.0f) < 0.5f) PDepth.particleDepthDist = 0;
-			else if (Mathf.Abs(Time.time - 179.0f) < 0.5f) PDepth.particleDepthDist = 750;
-			else if (Mathf.Abs(Time.time - 180.0f) < 0.1f) PDepth.particleDepthDist = 1550;
+//			if (Mathf.Abs(Time.time - 0.0f) < 0.1f) PDepth.particleDepthDist = 1550;
+//			else if (Mathf.Abs(Time.time - 2.0f) < 0.1f) GestureFeedback.DepthDistIncrements = -9;
+//			else if (Mathf.Abs(Time.time - 11.0f) < 0.1f) GestureFeedback.DepthDistIncrements = 0;
+//			else if (Mathf.Abs(Time.time - 42.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 67.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 73.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 83.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 93.0f) < 0.5f) PDepth.particleDepthDist = 750;
+//			else if (Mathf.Abs(Time.time - 104.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 123.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 132.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 159.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 179.0f) < 0.5f) PDepth.particleDepthDist = 750;
+//			else if (Mathf.Abs(Time.time - 180.0f) < 0.1f) PDepth.particleDepthDist = 1550;
+			//Training - 360MIKU
+//			if (Mathf.Abs(Time.time - 0.0f) < 0.1f) PDepth.particleDepthDist = 1550;
+//			else if (Mathf.Abs(Time.time - 2.0f) < 0.1f) GestureFeedback.DepthDistIncrements = -15;
+//			else if (Mathf.Abs(Time.time - 6.0f) < 0.1f) GestureFeedback.DepthDistIncrements = 0;
+//			else if (Mathf.Abs(Time.time - 31.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 38.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 95.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 126.0f) < 0.5f) PDepth.particleDepthDist = 750;
+//			else if (Mathf.Abs(Time.time - 155.0f) < 0.5f) PDepth.particleDepthDist = 0;
+//			else if (Mathf.Abs(Time.time - 181.0f) < 0.5f) PDepth.particleDepthDist = 1490;
+//			else if (Mathf.Abs(Time.time - 210.0f) < 0.5f) PDepth.particleDepthDist = 0;
 		}
 	}
 	
